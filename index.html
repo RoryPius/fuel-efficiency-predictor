@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fuel Efficiency Predictor — PHINIA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #141414;
+      --border: #1E1E1E;
+      --border2: #222222;
+      --blue: #005DFF;
+      --blue-dark: #0047CC;
+      --cyan: #00B4D8;
+      --white: #FFFFFF;
+      --gray: #A0A0A0;
+      --gray-mid: #888888;
+      --gray-dark: #666666;
+      --gray-border: #555555;
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--blue);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .top-bar-left {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .top-bar-right {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding-top: 112px;
+      padding-bottom: 64px;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--gray);
+      line-height: 1.8;
+      max-width: 540px;
+      margin-bottom: 40px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-item { text-align: left; }
+
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--blue);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--gray-dark);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 0 64px;
+    }
+
+    /* ── APP SECTION ── */
+    .app-section { padding-bottom: 80px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 40px;
+    }
+
+    /* ── FUEL TABS ── */
+    .fuel-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .fuel-tab {
+      padding: 8px 18px;
+      border-radius: 2px;
+      border: 1px solid var(--gray-border);
+      background: transparent;
+      color: var(--gray-mid);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+
+    .fuel-tab:hover {
+      border-color: var(--blue);
+      color: var(--white);
+    }
+
+    .fuel-tab.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: var(--white);
+    }
+
+    /* ── MAIN GRID ── */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .panel {
+      background: var(--surface);
+      padding: 32px;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      margin-bottom: 28px;
+    }
+
+    /* ── SLIDERS ── */
+    .slider-item { margin-bottom: 24px; }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .slider-name {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--gray-mid);
+      letter-spacing: 0.04em;
+    }
+
+    .slider-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .slider-track {
+      position: relative;
+      height: 3px;
+      background: var(--border);
+      border-radius: 1px;
+    }
+
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: var(--blue);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    input[type="range"] {
+      position: absolute;
+      top: -8px;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .thumb-dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--white);
+      pointer-events: none;
+    }
+
+    /* ── PREDICT BUTTON ── */
+    .predict-btn {
+      width: 100%;
+      padding: 16px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 2px;
+      background: var(--blue);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.15s ease;
+    }
+
+    .predict-btn:hover { background: var(--blue-dark); }
+
+    /* ── RESULTS GRID ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .r-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .r-unit {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .r-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+    }
+
+    /* ── INSIGHT CALLOUT ── */
+    .insight {
+      padding: 14px 18px;
+      border-left: 3px solid var(--blue);
+      background: #0D1520;
+      color: #A0CFFF;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.7;
+      transition: all 0.3s ease;
+    }
+
+    .insight.default {
+      border-left-color: var(--border);
+      background: var(--surface);
+      color: var(--gray-dark);
+    }
+
+    .insight.zero {
+      border-left-color: #00C48C;
+      background: #091A13;
+      color: #7DDFB8;
+    }
+
+    .insight.low {
+      border-left-color: var(--cyan);
+      background: #081920;
+      color: #7DD4EA;
+    }
+
+    .insight.high {
+      border-left-color: #E07B00;
+      background: #1A1000;
+      color: #D4953A;
+    }
+
+    /* ── COMPARISON BAR ── */
+    .compare-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .compare-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      margin-bottom: 14px;
+    }
+
+    .compare-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .c-label {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--gray);
+      width: 60px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .c-bar-bg {
+      flex: 1;
+      height: 4px;
+      background: #1A1A1A;
+      overflow: hidden;
+    }
+
+    .c-bar {
+      height: 100%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .c-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--gray);
+      width: 40px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--blue);
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 10px;
+      font-weight: 400;
+      color: #444;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── LOADING STATE ── */
+    .predict-btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .predict-btn.loading span { opacity: 0; }
+
+    .predict-btn.loading::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      animation: shimmer 1s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <span class="top-bar-left">PHINIA · Fuel Efficiency Predictor</span>
+    <span class="top-bar-right">AI Research Project · 2026</span>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- HERO -->
+    <section class="hero">
+      <p class="hero-eyebrow">Machine Learning · Fuel Efficiency</p>
+      <h1 class="hero-title">Fuel Efficiency<br>Predictor</h1>
+      <p class="hero-sub">
+        A machine learning model trained on 392 real vehicles that predicts fuel efficiency
+        and CO₂ output across hydrogen, CNG, ethanol, petrol, and diesel.
+      </p>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num">392</span>
+          <span class="stat-label">Vehicles Trained</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">0.88</span>
+          <span class="stat-label">R² Accuracy</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">5</span>
+          <span class="stat-label">Fuel Types</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">0g</span>
+          <span class="stat-label">H₂ CO₂/km</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- APP -->
+    <section class="app-section">
+      <p class="section-label">Live Prediction Engine</p>
+      <h2 class="section-title">Configure Your Engine</h2>
+
+      <!-- FUEL TABS -->
+      <div class="fuel-row">
+        <button class="fuel-tab active" onclick="selectFuel(this,'petrol')">Petrol</button>
+        <button class="fuel-tab" onclick="selectFuel(this,'diesel')">Diesel</button>
+        <button class="fuel-tab" onclick="selectFuel(this,'ethanol')">Ethanol</button>
+        <button class="fuel-tab" onclick="selectFuel(this,'cng')">CNG</button>
+        <button class="fuel-tab" onclick="selectFuel(this,'hydrogen')">Hydrogen</button>
+      </div>
+
+      <!-- MAIN APP GRID -->
+      <div class="app-grid">
+
+        <!-- LEFT: INPUTS -->
+        <div class="panel">
+          <p class="panel-title">Engine Parameters</p>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Cylinders</span>
+              <span class="slider-val" id="cyl-val">4</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="cyl-fill" style="width:20%"></div>
+              <div class="thumb-dot" id="cyl-thumb" style="left:20%"></div>
+              <input type="range" id="cylinders" min="3" max="8" value="4" step="1"
+                oninput="updateSlider(this,'cyl-val','cyl-fill','cyl-thumb',3,8)">
+            </div>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Displacement</span>
+              <span class="slider-val" id="disp-val">150</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="disp-fill" style="width:21%"></div>
+              <div class="thumb-dot" id="disp-thumb" style="left:21%"></div>
+              <input type="range" id="displacement" min="68" max="455" value="150" step="5"
+                oninput="updateSlider(this,'disp-val','disp-fill','disp-thumb',68,455)">
+            </div>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Horsepower</span>
+              <span class="slider-val" id="hp-val">100</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="hp-fill" style="width:29%"></div>
+              <div class="thumb-dot" id="hp-thumb" style="left:29%"></div>
+              <input type="range" id="horsepower" min="46" max="230" value="100" step="5"
+                oninput="updateSlider(this,'hp-val','hp-fill','hp-thumb',46,230)">
+            </div>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Weight (lbs)</span>
+              <span class="slider-val" id="wt-val">2800</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="wt-fill" style="width:34%"></div>
+              <div class="thumb-dot" id="wt-thumb" style="left:34%"></div>
+              <input type="range" id="weight" min="1500" max="5200" value="2800" step="50"
+                oninput="updateSlider(this,'wt-val','wt-fill','wt-thumb',1500,5200)">
+            </div>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Acceleration (s)</span>
+              <span class="slider-val" id="acc-val">15</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="acc-fill" style="width:41%"></div>
+              <div class="thumb-dot" id="acc-thumb" style="left:41%"></div>
+              <input type="range" id="acceleration" min="8" max="25" value="15" step="1"
+                oninput="updateSlider(this,'acc-val','acc-fill','acc-thumb',8,25)">
+            </div>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-top">
+              <span class="slider-name">Model Year</span>
+              <span class="slider-val" id="yr-val">76</span>
+            </div>
+            <div class="slider-track">
+              <div class="slider-fill" id="yr-fill" style="width:50%"></div>
+              <div class="thumb-dot" id="yr-thumb" style="left:50%"></div>
+              <input type="range" id="model_year" min="70" max="82" value="76" step="1"
+                oninput="updateSlider(this,'yr-val','yr-fill','yr-thumb',70,82)">
+            </div>
+          </div>
+
+          <button class="predict-btn" onclick="predict()" id="predict-btn">
+            <span>Run Prediction</span>
+          </button>
+        </div>
+
+        <!-- RIGHT: RESULTS -->
+        <div class="panel">
+          <p class="panel-title">Prediction Output</p>
+
+          <div class="results-grid">
+            <div class="result-card">
+              <div class="r-num" id="mpg-val">--</div>
+              <div class="r-unit">MPG</div>
+              <div class="r-label">Predicted MPG</div>
+            </div>
+            <div class="result-card">
+              <div class="r-num" id="co2-val">--</div>
+              <div class="r-unit">G / KM</div>
+              <div class="r-label">CO₂ Emissions</div>
+            </div>
+            <div class="result-card">
+              <div class="r-num" id="l100-val">--</div>
+              <div class="r-unit">L / 100KM</div>
+              <div class="r-label">Litres / 100km</div>
+            </div>
+            <div class="result-card">
+              <div class="r-num" id="fuel-val" style="font-size:22px;font-family:'Inter',sans-serif">--</div>
+              <div class="r-unit">Fuel Type</div>
+              <div class="r-label">Selected Fuel</div>
+            </div>
+          </div>
+
+          <div class="insight default" id="insight">
+            Select your engine specs and press Run Prediction to see results.
+          </div>
+
+          <div class="compare-section" id="compare-section" style="display:none">
+            <p class="compare-title">CO₂ vs Petrol Baseline</p>
+            <div class="compare-row">
+              <span class="c-label">Petrol</span>
+              <div class="c-bar-bg">
+                <div class="c-bar" id="bar-petrol" style="width:100%;background:#333333"></div>
+              </div>
+              <span class="c-num">120 g</span>
+            </div>
+            <div class="compare-row">
+              <span class="c-label" id="bar-label">Selected</span>
+              <div class="c-bar-bg">
+                <div class="c-bar" id="bar-selected" style="width:0%;background:#005DFF"></div>
+              </div>
+              <span class="c-num" id="bar-num">-- g</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrapper">
+      <p class="footer-text">Built by Rory Pius · BSc Computer Science (AI), Year 1</p>
+    </div>
+  </footer>
+
+  <script>
+    let selectedFuel = 'petrol';
+
+    function updateSlider(input, valId, fillId, thumbId, min, max) {
+      const pct = ((input.value - min) / (max - min)) * 100;
+      document.getElementById(valId).textContent = input.value;
+      document.getElementById(fillId).style.width = pct + '%';
+      document.getElementById(thumbId).style.left = pct + '%';
+    }
+
+    function selectFuel(btn, fuel) {
+      document.querySelectorAll('.fuel-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedFuel = fuel;
+    }
+
+    async function predict() {
+      const btn = document.getElementById('predict-btn');
+      btn.classList.add('loading');
+
+      const data = {
+        cylinders: parseFloat(document.getElementById('cylinders').value),
+        displacement: parseFloat(document.getElementById('displacement').value),
+        horsepower: parseFloat(document.getElementById('horsepower').value),
+        weight: parseFloat(document.getElementById('weight').value),
+        acceleration: parseFloat(document.getElementById('acceleration').value),
+        model_year: parseFloat(document.getElementById('model_year').value),
+        origin: 1,
+        fuel_type: selectedFuel
+      };
+
+      try {
+        const res = await fetch('http://127.0.0.1:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const r = await res.json();
+
+        document.getElementById('mpg-val').textContent = r.mpg;
+        document.getElementById('co2-val').textContent = r.co2;
+        document.getElementById('l100-val').textContent = r.lper100km;
+        document.getElementById('fuel-val').textContent =
+          selectedFuel.charAt(0).toUpperCase() + selectedFuel.slice(1);
+
+        const insight = document.getElementById('insight');
+        if (r.co2 === 0) {
+          insight.className = 'insight zero';
+          insight.textContent = "Zero direct emissions — fully aligned with PHINIA's Net Zero mission. Hydrogen is the future.";
+        } else if (r.co2 < 80) {
+          insight.className = 'insight low';
+          insight.textContent = `Low-carbon fuel. ${120 - r.co2}g/km saved vs petrol baseline. Supports PHINIA's alternative fuels strategy.`;
+        } else {
+          insight.className = 'insight high';
+          insight.textContent = "Conventional fuel baseline. Switch to Hydrogen (0 g/km) or CNG (55 g/km) to support PHINIA's Net Zero goals.";
+        }
+
+        const compareSection = document.getElementById('compare-section');
+        compareSection.style.display = 'block';
+        document.getElementById('bar-label').textContent =
+          selectedFuel.charAt(0).toUpperCase() + selectedFuel.slice(1);
+        const pct = (r.co2 / 120) * 100;
+        document.getElementById('bar-selected').style.width = Math.max(pct, 2) + '%';
+        document.getElementById('bar-num').textContent = r.co2 + ' g';
+
+      } catch (err) {
+        const insight = document.getElementById('insight');
+        insight.className = 'insight';
+        insight.textContent = 'Connection error. Make sure app.py is running on port 5000.';
+      }
+
+      btn.classList.remove('loading');
+    }
+  </script>
+
+</body>
+</html>
